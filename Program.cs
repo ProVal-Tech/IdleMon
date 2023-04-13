@@ -3,14 +3,14 @@ using CliWrap;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
 
-if (args is { Length: 1 }) {
+if (args is { Length: >= 1 }) {
     string executablePath = Path.Combine(AppContext.BaseDirectory, "IdleMon.exe");
-    if (args[0] is "/Install") {
+    if (args[0].ToLower() is "/install") {
         await IdleService.Uninstall();
         _ = await Cli.Wrap("sc")
             .WithArguments(new[] { "create", IdleService.SERVICE_NAME, $"binPath={executablePath}", "type=userown", "DisplayName=IdleMon", "start=auto" })
             .ExecuteAsync();
-    } else if (args[0] is "/Uninstall") {
+    } else if (args[0].ToLower() is "/uninstall") {
         await IdleService.Uninstall();
     }
     return;
