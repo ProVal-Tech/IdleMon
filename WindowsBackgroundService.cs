@@ -12,10 +12,12 @@ namespace IdleMon {
             try {
                 while (!stoppingToken.IsCancellationRequested) {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
-                    _logger.LogInformation("{idleJson}", _idleService.WriteIdleTime());
+                    _logger.LogInformation("{idleJson}", _idleService.WriteIdleFile());
                     await Task.Delay(5000, stoppingToken);
                 }
+                _idleService.RemoveIdleFile();
             } catch (TaskCanceledException) {
+                _idleService.RemoveIdleFile();
             } catch (Exception ex) {
                 _logger.LogError(ex, "{Message}", ex.Message);
                 Environment.Exit(1);

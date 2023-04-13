@@ -7,11 +7,17 @@ if (args is { Length: >= 1 }) {
     string executablePath = Path.Combine(AppContext.BaseDirectory, "IdleMon.exe");
     if (args[0].ToLower() is "/install") {
         await IdleService.Uninstall();
-        _ = await Cli.Wrap("sc")
+        try {
+            _ = await Cli.Wrap("sc")
             .WithArguments(new[] { "create", IdleService.SERVICE_NAME, $"binPath={executablePath}", "type=userown", "DisplayName=IdleMon", "start=auto" })
             .ExecuteAsync();
+            Console.WriteLine("Successfully installed IdleMon service.");
+        } catch (Exception ex) {
+            Console.WriteLine($"Installation of IdleMon service failed: {ex}");
+        }
     } else if (args[0].ToLower() is "/uninstall") {
         await IdleService.Uninstall();
+        Console.WriteLine("Successfully uninstalled IdleMon service.");
     }
     return;
 }
