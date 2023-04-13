@@ -17,7 +17,8 @@ if (args is { Length: >= 1 }) {
         }
     } else if (args[0].ToLower() is "/uninstall") {
         await IdleService.Uninstall();
-        Console.WriteLine("Successfully uninstalled IdleMon service.");
+    } else if (args[0].ToLower() is "/report") {
+        Console.WriteLine(IdleService.GetIdleReport());
     }
     return;
 }

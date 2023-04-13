@@ -23,6 +23,15 @@ namespace IdleMon {
             } finally { }
         }
 
+        public static string GetIdleReport() {
+            string usersPath = $@"{Environment.GetEnvironmentVariable("HOMEDRIVE") ?? @"C:"}\Users";
+            List<IdleInfo?> idleFiles = Directory.GetDirectories(usersPath, "*", enumerationOptions: new EnumerationOptions() { IgnoreInaccessible = true })
+                .SelectMany(d => Directory.GetFiles(d, "idletime.json", enumerationOptions: new EnumerationOptions() { IgnoreInaccessible = true }))
+                .Select(f => JsonSerializer.Deserialize<IdleInfo>(File.ReadAllText(f)))
+                .ToList();
+            return JsonSerializer.Serialize(idleFiles);
+        }
+
         public async static Task Uninstall() {
             _ = await Cli.Wrap("powershell")
             .WithArguments(new[] { "-c", $"Get-Service {SERVICE_NAME}* | Stop-Service -PassThru | % {{ sc.exe delete $_.Name }}" })

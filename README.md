@@ -52,13 +52,18 @@ The `TimeSpan` representation of the amount of time that the audited user has be
 ```powershell
 # Uncomment this line if you need to install .NET 7
 # $ProgressPreference = 'SilentlyContinue'; iwr -Uri https://download.visualstudio.microsoft.com/download/pr/dffb1939-cef1-4db3-a579-5475a3061cdd/578b208733c914c7b7357f6baa4ecfd6/windowsdesktop-runtime-7.0.5-win-x64.exe -UseBasicParsing -OutFile $env:TEMP\dotnet7.exe; & $env:TEMP\dotnet7.exe /quiet | Out-String
-IdleMon.exe /Install
+IdleMon.exe /install
 ```
 
 ## Uninstallation
 
 ```shell
-IdleMon.exe /Uninstall
+IdleMon.exe /uninstall
+```
+
+## Reporting
+```powershell
+IdleMon.exe /report | ConvertFrom-Json
 ```
 
 ## Attributions
