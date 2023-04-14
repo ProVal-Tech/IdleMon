@@ -13,7 +13,7 @@ namespace IdleMon {
                 while (!stoppingToken.IsCancellationRequested) {
                     _logger.LogInformation("Worker running at: {time}", DateTimeOffset.Now);
                     _logger.LogInformation("{idleJson}", _idleService.WriteIdleFile());
-                    await Task.Delay(1000, stoppingToken);
+                    await Task.Delay(5000, stoppingToken);
                 }
                 _idleService.RemoveIdleFile();
             } catch (TaskCanceledException) {
