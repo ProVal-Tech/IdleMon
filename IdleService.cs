@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json;
 using System.Security.Principal;
 using CliWrap;
+using System.DirectoryServices.AccountManagement;
 
 namespace IdleMon {
     public sealed class IdleService {
@@ -25,8 +21,8 @@ namespace IdleMon {
 
         public static string GetIdleReport() {
             string usersPath = $@"{Environment.GetEnvironmentVariable("HOMEDRIVE") ?? @"C:"}\Users";
-            List<IdleInfo?> idleFiles = Directory.GetDirectories(usersPath, "*", enumerationOptions: new EnumerationOptions() { IgnoreInaccessible = true })
-                .SelectMany(d => Directory.GetFiles(d, "idletime.json", enumerationOptions: new EnumerationOptions() { IgnoreInaccessible = true }))
+            List<IdleInfo?> idleFiles = Directory.GetDirectories(usersPath, "*", new EnumerationOptions() { IgnoreInaccessible = true })
+                .SelectMany(d => Directory.GetFiles(d, "idletime.json", new EnumerationOptions() { IgnoreInaccessible = true }))
                 .Select(f => JsonSerializer.Deserialize<IdleInfo>(File.ReadAllText(f)))
                 .ToList();
             return JsonSerializer.Serialize(idleFiles);
@@ -57,12 +53,51 @@ namespace IdleMon {
         }
     }
 
+
+
     public sealed class IdleInfo {
-        public string Username { get; } = Environment.UserName;
-        public string Domain { get; } = Environment.UserDomainName;
-        public TimeSpan IdleTime { get; } = UserInput.IdleTime;
-        public bool IsAdmin { get; } = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole(WindowsBuiltInRole.Administrator);
-        public bool IsDomainAdmin { get; } = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole("Domain Admins");
-        public bool IsEnterpriseAdmin { get; } = new WindowsPrincipal(WindowsIdentity.GetCurrent()).IsInRole("Enterprise Admins");
+        public string Username { get; set; }
+        public string Domain { get; set; }
+        public TimeSpan IdleTime { get; set; }
+        public bool IsAdmin { get; set; }
+        public bool IsDomainAdmin { get; set; }
+        public bool IsEnterpriseAdmin { get; set; }
+
+        public IdleInfo() {
+            Username = Environment.UserName;
+            Domain = Environment.UserDomainName;
+            IdleTime = UserInput.IdleTime;
+            IsAdmin = false;
+            IsDomainAdmin = false;
+            IsEnterpriseAdmin = false;
+
+            using PrincipalContext machineContext = new(ContextType.Machine);
+            WindowsIdentity currentUser = WindowsIdentity.GetCurrent();
+            IsAdmin = IsMember(machineContext, "Administrators", currentUser.User);
+            try {
+                using PrincipalContext domainContext = new(ContextType.Domain);
+                IsDomainAdmin = IsMember(domainContext, "Domain Admins", currentUser.User);
+                IsEnterpriseAdmin = IsMember(domainContext, "Enterprise Admins", currentUser.User);
+                if (IsDomainAdmin || IsEnterpriseAdmin) {
+                    IsAdmin = true;
+                    return;
+                }
+            } catch { }
+        }
+
+        private static bool IsMember(PrincipalContext context, string groupName, SecurityIdentifier? userSid) {
+            try {
+                GroupPrincipal? targetGroup = new(context) { SamAccountName = groupName };
+                PrincipalSearcher pSearcher = new(targetGroup);
+                targetGroup = pSearcher.FindOne() as GroupPrincipal;
+                if (targetGroup != null) {
+                    return targetGroup.GetMembers().Select(m => m.Sid).Contains(userSid);
+                }
+                return false;
+            } catch {
+                return false;
+            }
+        }
     }
+
 }

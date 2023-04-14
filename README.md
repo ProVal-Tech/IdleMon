@@ -35,7 +35,7 @@ The domain (if any) of the audited user.
 The `TimeSpan` representation of the amount of time that the audited user has been idle.
 
 #### IsAdmin
-`true` if the audited user is running IdleMon in an elevated session.
+`true` if the audited user is a member of the local Administrators group.
 
 #### IsDomainAdmin
 `true` if the audited user is a Domain Admin.
