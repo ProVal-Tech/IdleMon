@@ -4,8 +4,9 @@ namespace IdleMon {
         private readonly ILogger<WindowsBackgroundService> _logger;
 
         public WindowsBackgroundService(ILogger<WindowsBackgroundService> logger) {
-            _idleService = new IdleService();
             _logger = logger;
+            _idleService = new IdleService();
+
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken) {

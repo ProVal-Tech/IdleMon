@@ -2,23 +2,33 @@ using IdleMon;
 using CliWrap;
 using Microsoft.Extensions.Logging.Configuration;
 using Microsoft.Extensions.Logging.EventLog;
+using System.Reflection;
 
 if (args is { Length: >= 1 }) {
     string executablePath = Path.Combine(AppContext.BaseDirectory, "IdleMon.exe");
-    if (args[0].ToLower() is "/install") {
-        await IdleService.Uninstall();
-        try {
-            _ = await Cli.Wrap("sc")
-            .WithArguments(new[] { "create", IdleService.SERVICE_NAME, $"binPath={executablePath}", "type=userown", "DisplayName=IdleMon", "start=auto" })
-            .ExecuteAsync();
-            Console.WriteLine("Successfully installed IdleMon service.");
-        } catch (Exception ex) {
-            Console.WriteLine($"Installation of IdleMon service failed: {ex}");
-        }
-    } else if (args[0].ToLower() is "/uninstall") {
-        await IdleService.Uninstall();
-    } else if (args[0].ToLower() is "/report") {
-        Console.WriteLine(IdleService.GetIdleReport());
+    switch(args[0].ToLower()) {
+        case "/install":
+            await IdleService.Uninstall();
+            try {
+                _ = await Cli.Wrap("sc")
+                .WithArguments(new[] { "create", IdleService.SERVICE_NAME, $"binPath={executablePath}", "type=userown", "DisplayName=IdleMon", "start=auto" })
+                .ExecuteAsync();
+                Console.WriteLine("Successfully installed IdleMon service.");
+            } catch (Exception ex) {
+                Console.WriteLine($"Installation of IdleMon service failed: {ex}");
+            }
+            break;
+        case "/uninstall":
+            await IdleService.Uninstall();
+            break;
+        case "/report":
+            Console.WriteLine(IdleService.GetIdleReport());
+            break;
+        case "/version":
+            Console.WriteLine(Assembly.GetExecutingAssembly().GetName().Version ?? null);
+            break;
+        default:
+            throw new NotImplementedException();
     }
     return;
 }

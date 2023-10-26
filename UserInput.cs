@@ -19,10 +19,8 @@ namespace IdleMon {
             }
         }
 
-        public static TimeSpan IdleTime {
-            get {
-                return DateTime.UtcNow.Subtract(LastInput);
-            }
+        public static TimeSpan GetIdleTime() {
+            return DateTime.UtcNow.Subtract(LastInput);
         }
 
         public static int LastInputTicks {

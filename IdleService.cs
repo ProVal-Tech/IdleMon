@@ -66,7 +66,8 @@ namespace IdleMon {
         public IdleInfo() {
             Username = Environment.UserName;
             Domain = Environment.UserDomainName;
-            IdleTime = UserInput.IdleTime;
+            IdleTime = UserInput.GetIdleTime();
+            GC.Collect();
             IsAdmin = false;
             IsDomainAdmin = false;
             IsEnterpriseAdmin = false;
@@ -86,13 +87,16 @@ namespace IdleMon {
         }
 
         private static bool IsMember(PrincipalContext context, string groupName, SecurityIdentifier? userSid) {
+            if(userSid == null) { return false; }
             try {
                 GroupPrincipal? targetGroup = new(context) { SamAccountName = groupName };
                 PrincipalSearcher pSearcher = new(targetGroup);
                 targetGroup = pSearcher.FindOne() as GroupPrincipal;
                 if (targetGroup != null) {
-                    return targetGroup.GetMembers().Select(m => m.Sid).Contains(userSid);
+                    List<string> groupMemberSids = targetGroup.GetMembers().Select(m => m.Sid.Value).ToList();
+                    return groupMemberSids.Contains(userSid.Value);
                 }
+                Console.WriteLine($"Unable to locate {groupName} in context {context.Name}");
                 return false;
             } catch {
                 return false;
